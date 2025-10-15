@@ -18,7 +18,6 @@ router.post("/upload", upload.single("file"), async (req: Request, res: Response
     const parsed: ParsedCreditReport = await parseXMLFile(file.path);
 
     const report = await CreditReport.create(parsed);
-    console.log(report);
 
     await fs.unlink(file.path);
 
