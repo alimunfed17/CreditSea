@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 type CreditReport = {
   id: string;
   name: string;
-  pan: string;
   creditScore: number;
   date: string;
 };
@@ -25,8 +24,8 @@ export default function ReportsList({ data }: CreditReportTableProps) {
       <Table>
         <TableHeader className="bg-gray-900">
           <TableRow>
+            <TableHead className="text-left font-semibold text-gray-200">#</TableHead>
             <TableHead className="text-left font-semibold text-gray-200">Name</TableHead>
-            <TableHead className="text-left font-semibold text-gray-200">PAN</TableHead>
             <TableHead className="text-left font-semibold text-gray-200">Credit Score</TableHead>
             <TableHead className="text-left font-semibold text-gray-200">Date</TableHead>
             <TableHead className="text-left font-semibold text-gray-200">Report</TableHead>
@@ -37,22 +36,27 @@ export default function ReportsList({ data }: CreditReportTableProps) {
           {data.map((report, index) => (
             <TableRow
               key={report.id}
-              className={`${
-                index % 2 === 0 ? "bg-white" : "bg-gray-50"
-              } hover:bg-gray-100 transition-colors duration-200`}
+              className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-gray-100 transition-colors duration-200`}
             >
+              {/* Row number */}
+              <TableCell className="font-medium">{index + 1}</TableCell>
+
+              {/* Name */}
               <TableCell className="font-medium">{report.name}</TableCell>
-              <TableCell>{report.pan}</TableCell>
+
+              {/* Credit Score */}
               <TableCell>
                 <span
-                  className={`px-2 py-1 rounded-full text-sm font-semibold ${getCreditScoreColor(
-                    report.creditScore
-                  )}`}
+                  className={`px-2 py-1 rounded-full text-sm font-semibold ${getCreditScoreColor(report.creditScore)}`}
                 >
                   {report.creditScore}
                 </span>
               </TableCell>
+
+              {/* Date */}
               <TableCell>{new Date(report.date).toLocaleDateString()}</TableCell>
+
+              {/* View button */}
               <TableCell>
                 <Button
                   size="sm"
