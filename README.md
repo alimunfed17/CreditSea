@@ -37,6 +37,12 @@ cd creditsea
 
 ---
 
+## Development 
+
+### For going through the development of the project please access the ***development branch***
+
+---
+
 ## License
 
 MIT License
