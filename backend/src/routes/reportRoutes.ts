@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { parseXMLFile, ParsedCreditReport } from "../utils/parseXML.js";
+import { parseXMLString, ParsedCreditReport } from "../utils/parseXML.js";
 import { CreditReport } from "../models/CreditReport.js";
 
 const router = express.Router();
@@ -26,39 +26,49 @@ router.post(
           .json({ message: "Invalid file type. Only XML allowed." });
       }
 
-      // ✅ Parse the XML directly from the in-memory buffer
+      // ✅ Parse XML directly from in-memory buffer
       const xmlContent = file.buffer.toString("utf-8");
-      const parsed: ParsedCreditReport = await parseXMLFile(xmlContent);
+      const parsed: ParsedCreditReport = await parseXMLString(xmlContent);
 
       // Save parsed data to DB
       const report = await CreditReport.create(parsed);
 
       res.json({ message: "File uploaded and parsed successfully", report });
     } catch (error) {
+      console.error(error); // logs visible in Vercel dashboard
       next(error);
     }
   }
 );
 
 // GET /api/reports
-router.get("/reports", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const reports = await CreditReport.find().sort({ createdAt: -1 });
-    res.json(reports);
-  } catch (error) {
-    next(error);
+router.get(
+  "/reports",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reports = await CreditReport.find().sort({ createdAt: -1 });
+      res.json(reports);
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
   }
-});
+);
 
 // GET /api/reports/:id
-router.get("/reports/:id", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const report = await CreditReport.findById(req.params.id);
-    if (!report) return res.status(404).json({ message: "Report not found" });
-    res.json(report);
-  } catch (error) {
-    next(error);
+router.get(
+  "/reports/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const report = await CreditReport.findById(req.params.id);
+      if (!report)
+        return res.status(404).json({ message: "Report not found" });
+      res.json(report);
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
   }
-});
+);
 
 export default router;

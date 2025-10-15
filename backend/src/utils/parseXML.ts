@@ -1,5 +1,4 @@
-import fs from 'fs/promises';
-import { parseStringPromise } from 'xml2js';
+import { parseStringPromise } from "xml2js";
 
 export interface BasicDetails {
   name: string;
@@ -34,14 +33,11 @@ export interface ParsedCreditReport {
 }
 
 /**
- * Parse a credit report XML from file path and return a structured object
- * @param filePath string path of the XML file
+ * Parse a credit report XML from a string (instead of a file)
+ * @param xmlData string containing XML content
  * @returns ParsedCreditReport
  */
-export async function parseXMLFile(filePath: string): Promise<ParsedCreditReport> {
-  // Read file asynchronously
-  const xmlData = await fs.readFile(filePath, 'utf-8');
-
+export async function parseXMLString(xmlData: string): Promise<ParsedCreditReport> {
   // Parse XML
   const result = await parseStringPromise(xmlData, { explicitArray: false });
   const profile = result.INProfileResponse;
@@ -86,7 +82,7 @@ export async function parseXMLFile(filePath: string): Promise<ParsedCreditReport
             holderAddress.ZIP_Postal_Code_non_normalized,
           ]
             .filter(Boolean)
-            .join(', '),
+            .join(", "),
           accountNumber: acc.Account_Number,
           amountOverdue: Number(acc.Amount_Past_Due),
           currentBalance: Number(acc.Current_Balance),
