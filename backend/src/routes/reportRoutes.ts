@@ -1,31 +1,44 @@
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
-import fs from "fs/promises";
 import { parseXMLFile, ParsedCreditReport } from "../utils/parseXML.js";
-import { CreditReport } from "../models/CreditReport.js"; 
+import { CreditReport } from "../models/CreditReport.js";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
+
+// ✅ Use memory storage (no file system writes)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // POST /api/upload
-router.post("/upload", upload.single("file"), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const file = req.file;
-    if (!file) return res.status(400).json({ message: "No file uploaded" });
-    if (!file.originalname.endsWith(".xml"))
-      return res.status(400).json({ message: "Invalid file type. Only XML allowed." });
+router.post(
+  "/upload",
+  upload.single("file"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
 
-    const parsed: ParsedCreditReport = await parseXMLFile(file.path);
+      if (!file.originalname.endsWith(".xml")) {
+        return res
+          .status(400)
+          .json({ message: "Invalid file type. Only XML allowed." });
+      }
 
-    const report = await CreditReport.create(parsed);
+      // ✅ Parse the XML directly from the in-memory buffer
+      const xmlContent = file.buffer.toString("utf-8");
+      const parsed: ParsedCreditReport = await parseXMLFile(xmlContent);
 
-    await fs.unlink(file.path);
+      // Save parsed data to DB
+      const report = await CreditReport.create(parsed);
 
-    res.json({ message: "File uploaded and parsed successfully", report });
-  } catch (error) {
-    next(error);
+      res.json({ message: "File uploaded and parsed successfully", report });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 // GET /api/reports
 router.get("/reports", async (req: Request, res: Response, next: NextFunction) => {
