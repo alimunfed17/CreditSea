@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { uploadXML } from "@/api/api";
 
 export default function UploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -27,19 +27,10 @@ export default function UploadForm() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
       setLoading(true);
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/upload`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      toast.success(response.data.message || "File uploaded successfully.");
+      const response = await uploadXML(file);
+      toast.success(response.message || "File uploaded successfully.");
       setFile(null);
     } catch (error: any) {
       console.error(error);
@@ -58,7 +49,9 @@ export default function UploadForm() {
       <Button onClick={handleUpload} disabled={loading}>
         {loading ? "Uploading..." : "Upload"}
       </Button>
-      {file && <p className="text-sm text-gray-500">Selected file: {file.name}</p>}
+      {file && (
+        <p className="text-sm text-gray-500">Selected file: {file.name}</p>
+      )}
     </div>
   );
 }

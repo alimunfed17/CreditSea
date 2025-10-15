@@ -1,82 +1,98 @@
-import { parseStringPromise } from "xml2js";
+import fs from 'fs/promises';
+import { parseStringPromise } from 'xml2js';
 
 export interface BasicDetails {
-  Name: string;
-  Mobile: string;
-  PAN: string;
-  CreditScore: number;
+  name: string;
+  mobilePhone: string;
+  pan: string;
+  creditScore: string;
 }
 
 export interface ReportSummary {
-  TotalAccounts: number;
-  ActiveAccounts: number;
-  ClosedAccounts: number;
-  CurrentBalance: number;
-  SecuredAmount: number;
-  UnsecuredAmount: number;
-  RecentEnquiries: number;
+  totalAccounts: number;
+  activeAccounts: number;
+  closedAccounts: number;
+  currentBalance: number;
+  securedAmount: number;
+  unsecuredAmount: number;
+  last7DaysEnquiries: number;
 }
 
 export interface CreditAccount {
-  type: string;
+  accountType: string;
   bank: string;
-  accountNumber: string;
   address: string;
+  accountNumber: string;
   amountOverdue: number;
   currentBalance: number;
 }
 
-
 export interface ParsedCreditReport {
-  name: string;
-  mobile: string;
-  pan: string;
-  creditScore: number;
-  reportSummary: {
-    totalAccounts: number;
-    activeAccounts: number;
-    closedAccounts: number;
-    currentBalance: number;
-    securedAmount: number;
-    unsecuredAmount: number;
-    recentEnquiries: number;
-  };
-  accounts: CreditAccount[];
+  basicDetails: BasicDetails;
+  reportSummary: ReportSummary;
+  creditAccounts: CreditAccount[];
 }
 
-export const parseXML = async (xmlData: string): Promise<ParsedCreditReport> => {
-  try {
-    const result = await parseStringPromise(xmlData, { explicitArray: false }) as any;
+/**
+ * Parse a credit report XML from file path and return a structured object
+ * @param filePath string path of the XML file
+ * @returns ParsedCreditReport
+ */
+export async function parseXMLFile(filePath: string): Promise<ParsedCreditReport> {
+  // Read file asynchronously
+  const xmlData = await fs.readFile(filePath, 'utf-8');
 
-    const basic = result.CreditReport.BasicDetails;
-    const summary = result.CreditReport.ReportSummary;
-    const accountsData = result.CreditReport.CreditAccounts.Account;
-    const accountsArray = Array.isArray(accountsData) ? accountsData : [accountsData];
+  // Parse XML
+  const result = await parseStringPromise(xmlData, { explicitArray: false });
+  const profile = result.INProfileResponse;
 
-    return {
-      name: basic.Name,
-      mobile: basic.Mobile,
-      pan: basic.PAN,
-      creditScore: Number(basic.CreditScore),
-      reportSummary: {
-        totalAccounts: Number(summary.TotalAccounts),
-        activeAccounts: Number(summary.ActiveAccounts),
-        closedAccounts: Number(summary.ClosedAccounts),
-        currentBalance: Number(summary.CurrentBalance),
-        securedAmount: Number(summary.SecuredAmount),
-        unsecuredAmount: Number(summary.UnsecuredAmount),
-        recentEnquiries: Number(summary.RecentEnquiries),
-      },
-      accounts: accountsArray.map((acc: any) => ({
-        type: acc.Type,
-        bank: acc.Bank,
-        accountNumber: acc.AccountNumber,
-        address: acc.Address,
-        amountOverdue: Number(acc.AmountOverdue),
-        currentBalance: Number(acc.CurrentBalance),
-      })),
-    };
-  } catch (error: any) {
-    throw new Error("Failed to parse XML: " + error.message);
-  }
-};
+  // ---- Basic Details ----
+  const applicant = profile.Current_Application.Current_Application_Details.Current_Applicant_Details;
+  const basicDetails: BasicDetails = {
+    name: [applicant.First_Name, applicant.Middle_Name1, applicant.Middle_Name2, applicant.Middle_Name3, applicant.Last_Name]
+      .filter(Boolean)
+      .join(' '),
+    mobilePhone: applicant.MobilePhoneNumber,
+    pan: applicant.IncomeTaxPan,
+    creditScore: profile.SCORE?.BureauScore || '',
+  };
+
+  // ---- Report Summary ----
+  const caisSummary = profile.CAIS_Account.CAIS_Summary;
+  const reportSummary: ReportSummary = {
+    totalAccounts: Number(caisSummary.Credit_Account.CreditAccountTotal),
+    activeAccounts: Number(caisSummary.Credit_Account.CreditAccountActive),
+    closedAccounts: Number(caisSummary.Credit_Account.CreditAccountClosed),
+    currentBalance: Number(caisSummary.Total_Outstanding_Balance.Outstanding_Balance_All),
+    securedAmount: Number(caisSummary.Total_Outstanding_Balance.Outstanding_Balance_Secured),
+    unsecuredAmount: Number(caisSummary.Total_Outstanding_Balance.Outstanding_Balance_UnSecured),
+    last7DaysEnquiries: Number(profile.TotalCAPS_Summary?.TotalCAPSLast7Days || 0),
+  };
+
+  // ---- Credit Accounts Information ----
+  const accounts = profile.CAIS_Account.CAIS_Account_DETAILS;
+  const creditAccounts: CreditAccount[] = Array.isArray(accounts)
+    ? accounts.map((acc: any) => {
+        const holderAddress = acc.CAIS_Holder_Address_Details;
+        return {
+          accountType: acc.Account_Type,
+          bank: acc.Subscriber_Name,
+          address: [
+            holderAddress.First_Line_Of_Address_non_normalized,
+            holderAddress.Second_Line_Of_Address_non_normalized,
+            holderAddress.Third_Line_Of_Address_non_normalized,
+            holderAddress.City_non_normalized,
+            holderAddress.State_non_normalized,
+            holderAddress.ZIP_Postal_Code_non_normalized,
+          ]
+            .filter(Boolean)
+            .join(', '),
+          accountNumber: acc.Account_Number,
+          amountOverdue: Number(acc.Amount_Past_Due),
+          currentBalance: Number(acc.Current_Balance),
+        };
+      })
+    : [];
+
+  return { basicDetails, reportSummary, creditAccounts };
+}
