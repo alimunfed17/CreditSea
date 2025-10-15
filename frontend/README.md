@@ -1,73 +1,131 @@
-# React + TypeScript + Vite
+# CreditSea Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React frontend for the CreditSea Fullstack Engineer Assignment. The frontend consumes the backend API to upload XML files, retrieve processed credit reports, and display them in a user-friendly interface.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Table of Contents
+- [Features](#features)
+- [Tech Stack](#tech-stack)  
+- [Project Structure](#project-structure)
+- [Setup & Installation](#setup--installation)
+- [Running the Application](#running-the-application)
+- [Usage](#usage)
+- [Notes](#notes)
 
-## React Compiler
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+---
 
-## Expanding the ESLint configuration
+## Features
+- Upload Experian XML files for credit report extraction.
+- View a list of all uploaded reports with basic details and credit scores.
+- Navigate to a detailed view of each report, showing:
+- Basic Details (Name, Mobile Phone, PAN, Credit Score)
+- Report Summary (Accounts, balances, last 7 days enquiries)
+- Credit Accounts Information (Bank, Account Number, Address, Current Balance, Amount Overdue)
+- Responsive design suitable for desktop and mobile devices.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **React**: Frontend library for building UI.
+- **React Router**: Navigation between pages.
+- **Axios**: API requests to backend endpoints.
+- **Tailwind CSS**: Styling and responsive design.
+- **TypeScript**: Type safety and better code quality.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## Project Structure
+
+```bash
+frontend/
+├── src/
+│ ├── api/ 
+│ ├── components/
+│ ├── lib/ 
+│ ├── pages/
+│ ├── App.tsx 
+│ ├── index.css
+│ └── main.tsx
+├── .env.example
+├── .gitignore
+├── README.md
+├── components.json
+├── eslint.config.js
+├── index.html
+├── package-lock.json 
+├── package.json 
+├── tsconfig.app.json 
+├── tsconfig.json
+├── tsconfig.node.json 
+└── vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Setup & Installation
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+#### 1. Install dependencies:
+```bash
+cd frontend
+
+npm install
+# or 
+yarn install
 ```
+
+#### 2. Set up environment variables:
+
+Create a `.env` file in the frontend root directory:
+```bash
+VITE_API_URL=http://localhost:5000/api
+```
+This points to your backend API.
+
+---
+
+## Running the Application
+Start the development server:
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+The frontend should now be running at:
+```bash
+    http://localhost:5173
+```
+
+
+Ensure your backend server is running simultaneously to allow API communication.
+
+--- 
+
+## Usage
+
+**1. Home Page**: Quick links to upload XML files or view reports.
+
+**2. Uploads Page**:
+
+- Select an XML file and upload it to the backend.
+- Frontend validates file type before sending.
+
+**3. Reports Page**:
+
+- Displays all uploaded reports in a table.
+- Click View to navigate to a detailed view.
+
+**4. Report Details Page**:
+
+- Shows Basic Details, Report Summary, and Credit Accounts in separate sections.
+
+---
+
+## Notes
+
+- The Report Details page does not show the global Header to focus on the report content.
+- Tables are responsive and scroll horizontally on smaller screens.
+- API errors and loading states are handled gracefully.
