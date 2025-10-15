@@ -22,7 +22,7 @@ creditsea/
 
 ## Backend Docs
 
-### The backend docs is situated at [frontend/README.md](./frontend/README.md).
+### The backend docs is situated at [backend/README.md](./backend/README.md).
 
 --- 
 
