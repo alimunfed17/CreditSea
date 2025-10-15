@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 type CreditReport = {
   id: string;
@@ -13,6 +14,8 @@ interface CreditReportTableProps {
 }
 
 export default function ReportsList({ data }: CreditReportTableProps) {
+  const navigate = useNavigate();
+
   const getCreditScoreColor = (score: number) => {
     if (score >= 750) return "bg-green-100 text-green-800";
     if (score >= 650) return "bg-yellow-100 text-yellow-800";
@@ -38,13 +41,10 @@ export default function ReportsList({ data }: CreditReportTableProps) {
               key={report.id}
               className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-gray-100 transition-colors duration-200`}
             >
-              {/* Row number */}
               <TableCell className="font-medium">{index + 1}</TableCell>
 
-              {/* Name */}
               <TableCell className="font-medium">{report.name}</TableCell>
 
-              {/* Credit Score */}
               <TableCell>
                 <span
                   className={`px-2 py-1 rounded-full text-sm font-semibold ${getCreditScoreColor(report.creditScore)}`}
@@ -53,16 +53,14 @@ export default function ReportsList({ data }: CreditReportTableProps) {
                 </span>
               </TableCell>
 
-              {/* Date */}
               <TableCell>{new Date(report.date).toLocaleDateString()}</TableCell>
 
-              {/* View button */}
               <TableCell>
                 <Button
                   size="sm"
                   variant="outline"
                   className="hover:bg-blue-50 text-blue-600 border-blue-600"
-                  onClick={() => alert(`View report for ${report.name}`)}
+                  onClick={() => navigate(`/reports/${report.id}`)}
                 >
                   View
                 </Button>
