@@ -17,4 +17,4 @@ app.use("/api", reportRoutes);
 // Error handler
 app.use(errorHandler);
 
-export default app;
+export default app; 
